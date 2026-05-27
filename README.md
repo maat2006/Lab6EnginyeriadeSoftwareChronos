@@ -9,6 +9,9 @@ technical criteria, API contracts, data model and role-based workflow.
 ```bash
 npm install
 npm run dev
+or 
+bun install
+bun run dev
 ```
 
 Useful Commands:
@@ -31,663 +34,73 @@ Each member can work on a story independently, but everyone consumes the same so
 
 ## Used Prompts
 
+# Prompt para la US-01: Añadir nuevas recetas
 
-# Plano Técnico de Desarrollo – Sistema de Gestión de Recetas
+Actúa como un Analista Técnico y Desarrollador Full-Stack Senior. Vamos a implementar la US-01 de nuestro sistema de gestión de recetas. El requerimiento original dice: **"Como usuario, quiero añadir nuevas recetas con ingredientes y pasos para tener un registro de cocina digital"**. Los criterios de aceptación actuales son genéricos (guardar, confirmar y deshacer en la interfaz principal). Necesito que desgloses esta historia en un plano de desarrollo real:
 
-# US-01: Añadir nuevas recetas
+1. **Criterios de Aceptación Técnicos:**  
+   Especifica qué campos obligatorios debe tener la receta (título, porciones, tiempo, etc.), cómo se estructuran los ingredientes (cantidad, unidad, nombre) y los pasos secuenciales.
 
-## Historia de Usuario
+2. **Modelo de Datos:**  
+   Diseña la estructura de la base de datos (relación entre la tabla Recetas, Ingredientes y Pasos).
 
-**Como usuario**, quiero añadir nuevas recetas con ingredientes y pasos para tener un registro de cocina digital.
+3. **API Backend:**  
+   Define el endpoint POST necesario, detallando el JSON de entrada y las validaciones lógicas obligatorias.
 
----
-
-## 1. Criterios de Aceptación Técnicos
-
-### Campos obligatorios de una receta
-
-| Campo | Tipo | Obligatorio | Validaciones |
-|---------|--------|-------------|--------------|
-| título | string | Sí | mínimo 3 caracteres, máximo 100 |
-| descripción | string | No | máximo 500 caracteres |
-| porciones | integer | Sí | mayor a 0 |
-| tiempoPreparacion | integer | Sí | minutos, mayor a 0 |
-| categoria | string | No | lista predefinida |
-| imagenUrl | string | No | URL válida |
-| ingredientes | array | Sí | mínimo 1 ingrediente |
-| pasos | array | Sí | mínimo 1 paso |
-
-### Estructura de ingredientes
-
-Cada ingrediente debe incluir:
-
-| Campo | Tipo | Obligatorio |
-|---------|--------|-------------|
-| cantidad | decimal | Sí |
-| unidad | string | Sí |
-| nombre | string | Sí |
-
-Ejemplo:
-
-```json
-{
-   "cantidad":500,
-   "unidad":"gramos",
-   "nombre":"Harina"
-}
-```
-
-### Estructura de pasos
-
-Cada paso debe incluir:
-
-| Campo | Tipo | Obligatorio |
-|---------|--------|-------------|
-| orden | integer | Sí |
-| descripcion | string | Sí |
-
-Ejemplo:
-
-```json
-{
-   "orden":1,
-   "descripcion":"Mezclar harina con agua"
-}
-```
+4. **Estrategia de Interfaz y "Deshacer":**  
+   Explica cómo se verá el formulario dinámico en el Frontend y cómo se abordará técnicamente el criterio de "poder deshacer la acción" (por ejemplo, mediante un botón temporal de "Deshacer/Eliminar" en el mensaje de confirmación de éxito).
 
 ---
 
-## 2. Modelo de Datos
+# Prompt para la US-02: Buscar recetas por nombre o ingrediente
 
-### Tabla: recetas
+Actúa como un Analista Técnico y Desarrollador Full-Stack Senior. Vamos a implementar la US-02 de nuestro sistema de gestión de recetas. El requerimiento original dice: **"Como usuario, quiero buscar recetas por nombre o ingrediente para encontrar rápidamente lo que necesito"**. El criterio genérico pide que esté en la interfaz principal, que confirme y que "se pueda deshacer" (lo cual no tiene mucho sentido técnico para una simple búsqueda).  
+Necesito que corrijas y desgloses esta historia de forma lógica:
 
-```sql
-CREATE TABLE recetas(
-    id UUID PRIMARY KEY,
-    titulo VARCHAR(100) NOT NULL,
-    descripcion TEXT,
-    porciones INT NOT NULL,
-    tiempo_preparacion INT NOT NULL,
-    categoria VARCHAR(50),
-    imagen_url TEXT,
-    usuario_id UUID NOT NULL,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
-```
+1. **Criterios de Aceptación Técnicos:**  
+   Define cómo debe comportarse la búsqueda (¿Es en tiempo real mientras se escribe?, ¿Soporta coincidencia parcial?, ¿Cómo filtra por múltiples ingredientes?). Reinterpreta el criterio de "deshacer" como un mecanismo rápido para limpiar los filtros de búsqueda instalados.
 
-### Tabla: ingredientes
+2. **Optimización de Base de Datos:**  
+   Explica qué tipo de consultas o índices (por ejemplo, índices de texto) se deben aplicar en la base de datos para que la búsqueda por nombre e ingredientes sea rápida.
 
-```sql
-CREATE TABLE ingredientes(
-    id UUID PRIMARY KEY,
-    receta_id UUID REFERENCES recetas(id),
-    cantidad DECIMAL(10,2),
-    unidad VARCHAR(30),
-    nombre VARCHAR(100)
-);
-```
+3. **API Backend:**  
+   Define el endpoint GET de búsqueda, detallando los parámetros de consulta (query params) necesarios.
 
-### Tabla: pasos
-
-```sql
-CREATE TABLE pasos(
-    id UUID PRIMARY KEY,
-    receta_id UUID REFERENCES recetas(id),
-    orden INT,
-    descripcion TEXT
-);
-```
-
-### Relación
-
-```text
-Usuarios
-   |
-   | (1:N)
-   |
-Recetas
-   |
-   ├── Ingredientes (1:N)
-   |
-   └── Pasos (1:N)
-```
+4. **Interfaz de Usuario:**  
+   Describe los componentes de la interfaz principal (barra de búsqueda, tags de ingredientes seleccionados) y cómo se muestran los resultados o el estado "No se encontraron recetas".
 
 ---
 
-## 3. API Backend
+# Prompt para la US-03: Editar recetas existentes
 
-### Endpoint
+Actúa como un Analista Técnico y Desarrollador Full-Stack Senior. Vamos a implementar la US-03 de nuestro sistema de gestión de recetas. El requerimiento original dice: **"Como usuario, quiero editar recetas existentes para corregir errores o hacer modificaciones"**. Los criterios genéricos vuelven a exigir guardar, confirmar y deshacer. Necesito que estructures el desarrollo técnico de esta funcionalidad:
 
-```http
-POST /api/recetas
-```
+1. **Criterios de Aceptación Técnicos:**  
+   Detalla el comportamiento del sistema al editar. ¿Qué pasa si el usuario borra un ingrediente existente o cambia el orden de los pasos?
 
-### Request JSON
+2. **API Backend:**  
+   Define el endpoint PUT o PATCH necesario. Explica cómo procesará el backend la actualización de los ingredientes y pasos asociados (¿reemplaza todo el array o hace actualizaciones atómicas?).
 
-```json
-{
-   "titulo":"Pizza Casera",
-   "descripcion":"Pizza tradicional",
-   "porciones":4,
-   "tiempoPreparacion":45,
-   "ingredientes":[
-      {
-         "cantidad":500,
-         "unidad":"gramos",
-         "nombre":"Harina"
-      }
-   ],
-   "pasos":[
-      {
-         "orden":1,
-         "descripcion":"Mezclar ingredientes"
-      }
-   ]
-}
-```
+3. **Lógica de "Deshacer" (Mundo Real):**  
+   Dado que el requerimiento exige "poder deshacer la acción si es necesario", propón una solución técnica elegante para el frontend o el backend (por ejemplo, mantener un borrador en memoria antes de guardar, o un sistema de "historial/rollback" rápido justo después de confirmar el cambio).
 
-### Validaciones obligatorias
-
-#### Validaciones generales
-
-- Usuario autenticado
-- Tiempo > 0
-- Porciones > 0
-- Ingredientes ≥ 1
-- Pasos ≥ 1
-- Título mínimo 3 caracteres
-
-#### Ingredientes
-
-- cantidad > 0
-- unidad no vacía
-- nombre no vacío
-
-#### Pasos
-
-- orden consecutivo
-- descripción mínimo 5 caracteres
+4. **Interfaz de Usuario:**  
+   Describe cómo se cargan los datos actuales en el formulario de edición y cómo se notifican los cambios guardados con éxito.
 
 ---
 
-## 4. Estrategia Frontend y "Deshacer"
+# Prompt para la US-04: Eliminar recetas
 
-### Formulario dinámico
+Actúa como un Analista Técnico y Desarrollador Full-Stack Senior. Vamos a implementar la US-04 de nuestro sistema de gestión de recetas. El requerimiento original dice: **"Como usuario, quiero eliminar recetas para mantener el sistema organizado"**. Aquí el criterio de "poder deshacer la acción" y "confirmar con un mensaje" es crítico para no perder información por accidente. Necesito que desgloses la lógica de eliminación:
 
-#### Información principal
+1. **Criterios de Aceptación Técnicos:**  
+   Define la política de borrado. ¿Se realizará un borrado físico (eliminar el registro por completo) o un borrado lógico (Soft Delete, cambiando un estado a `deleted: true`)? Argumenta cuál es mejor para cumplir con el criterio de "deshacer".
 
-- Título
-- Descripción
-- Porciones
-- Tiempo preparación
-- Categoría
-- Imagen
+2. **API Backend:**  
+   Define el endpoint DELETE. Explica qué validaciones de seguridad debe hacer (ej. verificar que la receta pertenece al usuario que intenta borrarla).
 
-#### Ingredientes
+3. **Implementación del "Deshacer" (Undo):**  
+   Explica detalladamente el flujo técnico: cuando el usuario elimina, aparece un banner de confirmación (Toast/Snackbar) con una cuenta atrás de 5 segundos y un botón de "Deshacer". Si pulsa "Deshacer", la receta no se borra; si expira el tiempo, el borrado se consolida en la base de datos.
 
-```text
-Cantidad | Unidad | Nombre | [Eliminar]
-
-+ Agregar ingrediente
-```
-
-#### Pasos
-
-```text
-Paso 1 [texto]
-Paso 2 [texto]
-
-+ Agregar paso
-```
-
-Funciones:
-
-- Agregar elementos
-- Eliminar elementos
-- Reordenar mediante drag & drop
-
-### Implementación de "Deshacer"
-
-Después de guardar:
-
-```text
-✓ Receta creada correctamente
-
-[Deshacer]
-```
-
-Funcionamiento:
-
-1. El backend devuelve el ID
-2. Frontend muestra Snackbar durante 5 segundos
-3. Si el usuario pulsa:
-
-```http
-DELETE /api/recetas/{id}
-```
-
-4. Si expira el tiempo:
-
-```text
-La receta permanece almacenada
-```
-
----
-
-# US-02: Buscar recetas por nombre o ingrediente
-
-## Historia de Usuario
-
-**Como usuario**, quiero buscar recetas por nombre o ingrediente para encontrar rápidamente lo que necesito.
-
----
-
-## 1. Criterios de Aceptación Técnicos
-
-### Comportamiento esperado
-
-- Búsqueda en tiempo real
-- Debounce entre 300–500 ms
-- Coincidencia parcial
-- Ignorar mayúsculas/minúsculas
-- Soporta múltiples ingredientes
-- Combina filtros
-
-Ejemplo:
-
-```text
-pollo + tomate
-```
-
-Resultados:
-
-```text
-Recetas que contengan ambos ingredientes
-```
-
-### Reinterpretación de "Deshacer"
-
-Se reemplaza por:
-
-```text
-[Limpiar filtros]
-```
-
-Acciones:
-
-- Borra texto buscado
-- Elimina tags seleccionados
-- Restaura lista completa
-
----
-
-## 2. Optimización Base de Datos
-
-### Índice para título
-
-```sql
-CREATE INDEX idx_receta_titulo
-ON recetas
-USING gin(
-to_tsvector('spanish',titulo)
-);
-```
-
-### Índice para ingredientes
-
-```sql
-CREATE INDEX idx_ingredientes_nombre
-ON ingredientes(nombre);
-```
-
-### Consulta aproximada
-
-```sql
-SELECT r.*
-FROM recetas r
-JOIN ingredientes i
-ON r.id=i.receta_id
-WHERE
-r.titulo ILIKE '%pollo%'
-OR i.nombre ILIKE '%pollo%';
-```
-
----
-
-## 3. API Backend
-
-### Endpoint
-
-```http
-GET /api/recetas/search
-```
-
-### Query Params
-
-| Parámetro | Tipo |
-|------------|------|
-| q | string |
-| ingredientes | array |
-| pagina | integer |
-| limite | integer |
-
-Ejemplo:
-
-```http
-GET /api/recetas/search?q=pasta&ingredientes=tomate,queso
-```
-
----
-
-## 4. Interfaz Usuario
-
-### Barra principal
-
-```text
-🔍 Buscar receta...
-```
-
-### Ingredientes seleccionados
-
-```text
-[Tomate x]
-[Queso x]
-[Pollo x]
-```
-
-### Resultados
-
-```text
-Pizza Casera
-Pasta Italiana
-Pollo al horno
-```
-
-### Estado vacío
-
-```text
-No se encontraron recetas
-
-[Intenta cambiar los filtros]
-```
-
----
-
-# US-03: Editar recetas existentes
-
-## Historia de Usuario
-
-**Como usuario**, quiero editar recetas existentes para corregir errores o hacer modificaciones.
-
----
-
-## 1. Criterios de Aceptación Técnicos
-
-### Comportamiento esperado
-
-Si usuario elimina ingrediente:
-
-- desaparece de receta
-- backend elimina relación
-
-Si usuario cambia orden:
-
-```text
-Paso 1
-Paso 2
-Paso 3
-```
-
-No permitir:
-
-```text
-Paso 1
-Paso 4
-Paso 8
-```
-
----
-
-## 2. API Backend
-
-### Endpoint
-
-```http
-PUT /api/recetas/{id}
-```
-
-o
-
-```http
-PATCH /api/recetas/{id}
-```
-
-### Estrategia recomendada
-
-Actualizar colecciones completas:
-
-```text
-1. Eliminar ingredientes actuales
-2. Insertar nueva colección
-3. Eliminar pasos actuales
-4. Insertar nueva colección
-```
-
-Todo dentro de una transacción:
-
-```text
-ACID Transaction
-```
-
----
-
-## 3. Lógica "Deshacer"
-
-### Estrategia híbrida
-
-Antes de guardar:
-
-```javascript
-const estadoOriginal = recetaActual;
-```
-
-Tras guardar:
-
-```text
-✓ Cambios guardados
-
-[Deshacer]
-```
-
-Endpoint:
-
-```http
-PUT /api/recetas/{id}/restore
-```
-
-Alternativa más robusta:
-
-```sql
-CREATE TABLE historial_recetas(
-    id UUID PRIMARY KEY,
-    receta_id UUID,
-    snapshot_json JSON,
-    created_at TIMESTAMP
-);
-```
-
----
-
-## 4. Interfaz Usuario
-
-Formulario precargado:
-
-```text
-Editar receta
-
-Título: Pizza Casera
-Porciones: 4
-
-Ingredientes:
-500 gramos Harina
-
-Pasos:
-1. Mezclar ingredientes
-```
-
-Confirmación:
-
-```text
-✓ Cambios guardados correctamente
-
-[Deshacer]
-```
-
----
-
-# US-04: Eliminar recetas
-
-## Historia de Usuario
-
-**Como usuario**, quiero eliminar recetas para mantener el sistema organizado.
-
----
-
-## 1. Criterios de Aceptación Técnicos
-
-### Política de borrado
-
-Implementar Soft Delete:
-
-```sql
-ALTER TABLE recetas
-ADD deleted BOOLEAN DEFAULT false;
-
-ALTER TABLE recetas
-ADD deleted_at TIMESTAMP NULL;
-```
-
-Motivos:
-
-- Recuperación
-- Auditoría
-- Soporte Undo
-- Prevención de pérdida accidental
-
----
-
-## 2. API Backend
-
-### Endpoint
-
-```http
-DELETE /api/recetas/{id}
-```
-
-### Validaciones
-
-- Usuario autenticado
-- Receta existente
-- Verificar propietario
-
-Ejemplo:
-
-```sql
-SELECT *
-FROM recetas
-WHERE
-id=:id
-AND usuario_id=:usuario;
-```
-
----
-
-## 3. Implementación Undo
-
-### Flujo técnico
-
-Usuario:
-
-```text
-🗑 Eliminar receta
-```
-
-Backend:
-
-```http
-DELETE /api/recetas/{id}
-```
-
-Acción:
-
-```text
-deleted=true
-deleted_at=timestamp_actual
-```
-
-Frontend:
-
-```text
-⚠ Receta eliminada
-
-[Deshacer]
-
-(5 segundos)
-```
-
-Si usuario pulsa:
-
-```http
-POST /api/recetas/{id}/restore
-```
-
-Backend:
-
-```text
-deleted=false
-deleted_at=NULL
-```
-
-Si expira:
-
-```sql
-DELETE FROM recetas
-WHERE deleted=true
-AND deleted_at < NOW()-INTERVAL '5 minutes';
-```
-
----
-
-## 4. Interfaz Usuario
-
-```text
-Lista recetas
-
-Pizza 🍕      ✏️ 🗑
-Pasta 🍝      ✏️ 🗑
-```
-
-Al pulsar papelera:
-
-```text
-¿Desea eliminar esta receta?
-
-[Cancelar]
-[Eliminar]
-```
-
-Después:
-
-```text
-⚠ Receta eliminada
-
-[Deshacer]
-(5 segundos)
-```
-
-Si no hay acción:
-
-```text
-La eliminación se consolida automáticamente
-```
+4. **Interfaz de Usuario:**  
+   Describe el flujo visual desde que se hace clic en el icono de papelera en la interfaz principal hasta que la receta desaparece de la lista.
