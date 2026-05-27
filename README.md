@@ -111,3 +111,11 @@ Actúa como un Analista Técnico y Desarrollador Full-Stack Senior. Vamos a impl
 
 <img width="598" height="371" alt="Captura de pantalla 2026-05-27 a las 16 13 11" src="https://github.com/user-attachments/assets/be730b16-9148-40ea-a680-bb4c7e90419d" />
 <img width="910" height="608" alt="image" src="https://github.com/user-attachments/assets/ad22fcd7-3864-410d-904f-bacf7e5aeaed" />
+
+
+# Conclusions
+For those of us who could use Copilot, it was awesome for skipping the boring stuff. It helped us write boilerplate code quickly and set up the base for our GitHub pipeline without starting from scratch.
+
+Since a few team members couldn't get Copilot to work due to technical issues, we adapted on the fly. While some generated the code with AI, the others became our "Reality Check" crew. Their job was to test the code locally, catch bugs, and make sure everything actually worked.
+
+We quickly realized Copilot isn't perfect. It often suggests things that don't work on the first try or don't fit our project. Without humans checking the logic and fixing the errors, the app wouldn't have worked.
