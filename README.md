@@ -1,4 +1,5 @@
 # Lab6EnginyeriadeSoftwareChronos
+Link: https://github.com/maat2006/Lab6EnginyeriadeSoftwareChronos
 
 Collaborative base to break down and distribute the workload of the recipe management system.
 The repo contains a React/TSX app that centralizes User Stories US-01 to US-04, their advanced prompts,
