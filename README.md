@@ -1,8 +1,11 @@
 # Lab6EnginyeriadeSoftwareChronos
 
-Base colaborativa para desglosar y repartir el trabajo del sistema de gestion de recetas.
-El repo contiene una app React/TSX que centraliza las User Stories US-01 a US-04, sus prompts avanzados,
-criterios tecnicos, contratos de API, modelo de datos y flujo de trabajo por roles.
+Aplicacion React/TSX para gestionar recetas de cocina. Implementa las historias:
+
+- US-01: añadir recetas con ingredientes y pasos.
+- US-02: buscar recetas por nombre o ingrediente.
+- US-03: editar recetas existentes con historial para deshacer.
+- US-04: eliminar recetas con soft delete y accion de deshacer.
 
 ## Arranque
 
@@ -20,17 +23,18 @@ npm run preview
 
 ## Estructura
 
-- `src/data/recipeStories.js`: documento vivo con las cuatro User Stories, prompts y desglose tecnico.
-- `src/data/teamWorkflow.js`: reparto de responsabilidades por perfil y fases de entrega.
-- `src/App.tsx`: tablero conectado que consume los documentos JS y permite revisar/copiar cada prompt.
+- `src/App.tsx`: orquestacion de estado, busqueda, CRUD y acciones de deshacer.
+- `src/components/`: formulario dinamico, buscador, listado, detalle y toast de undo.
+- `src/services/recipeApi.js`: capa de datos que simula endpoints REST y persiste en `localStorage`.
+- `src/data/sampleRecipes.js`: recetas iniciales para desarrollo.
+- `src/types.ts`: tipos compartidos para frontend y capa de datos.
 - `src/styles.css`: estilos de la interfaz principal.
 
 ## Flujo de equipo
 
-1. Product/QA revisa los criterios de aceptacion de cada historia en `recipeStories.js`.
-2. Backend toma los contratos de API y validaciones definidos por historia.
-3. Frontend implementa los formularios, busqueda, edicion, borrado y mecanismos de deshacer.
-4. QA valida cada historia usando los criterios tecnicos y los casos limite indicados.
+1. Frontend trabaja en `src/components/` y `src/App.tsx`.
+2. Backend puede sustituir `src/services/recipeApi.js` por llamadas HTTP reales manteniendo la misma interfaz.
+3. QA valida crear, buscar, editar, eliminar y deshacer usando la app local.
+4. Arquitectura mantiene los tipos en `src/types.ts` sincronizados con los contratos del backend.
 
-Cada miembro puede trabajar una historia de forma independiente, pero todos consumen la misma fuente de verdad:
-`src/data/recipeStories.js`.
+La persistencia actual es local por navegador mediante `localStorage`, preparada para evolucionar a API real.
