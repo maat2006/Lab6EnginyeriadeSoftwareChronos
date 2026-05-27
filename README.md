@@ -110,3 +110,4 @@ Actúa como un Analista Técnico y Desarrollador Full-Stack Senior. Vamos a impl
 # Screenshots of the application
 
 <img width="598" height="371" alt="Captura de pantalla 2026-05-27 a las 16 13 11" src="https://github.com/user-attachments/assets/be730b16-9148-40ea-a680-bb4c7e90419d" />
+<img width="910" height="608" alt="image" src="https://github.com/user-attachments/assets/ad22fcd7-3864-410d-904f-bacf7e5aeaed" />
